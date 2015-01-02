@@ -53,23 +53,26 @@ function pmpro_payflow_recurring_orders()
 	if($current_hour > $cron_end || $current_hour < $cron_start)
 		return;
 	
+	//where did we leave off?	
+	if(isset($_REQUEST['start']))
+	{
+		$start = intval($_REQUEST['start']);
+		delete_option('pmpro_pfro_paused');
+	}
+	else
+		$start = get_option('payflow_recurring_orders_cron_count', 0);		
+	
 	//are we paused? value is timestamp. if set wait until then
 	$paused = get_option('pmpro_pfro_paused', false);
 	if(!empty($paused) && $paused > $now)
 		return;
 		
 	//how many subscriptions to run at one time. based on your server speed and timeout limits/etc.
-	$nper = 20;
-	
-	//where did we leave off?	
-	if(!empty($_REQUEST['start']))
-		$start = get_option('payflow_recurring_orders_cron_count', 0);
-	else
-		$start = intval($_REQUEST['start']);
+	$nper = 50;		
 	
 	//next one
-	update_option('payflow_recurring_orders_cron_count', intval($start) + intval($nper));
-	
+	$end = (intval($start) + intval($nper));
+		
 	//get subs
 	$sqlQuery = "
 		SELECT SQL_CALC_FOUND_ROWS user_id FROM
@@ -89,24 +92,29 @@ function pmpro_payflow_recurring_orders()
 			WHERE mu.status = 'active'
 				AND mo.subscription_transaction_id <> ''
 		) members
-		WHERE DATEDIFF('" . current_time('mysql') . "', next_payment_date) <= 0
+		WHERE DATEDIFF('" . current_time('mysql') . "', next_payment_date) >= 0
 		LIMIT $start, $nper
 	";
 		
-	$sub_user_ids = $wpdb->get_col($sqlQuery);		
-	$count = $wpdb->get_var('SELECT FOUND_ROWS()');
+	$sub_user_ids = $wpdb->get_col($sqlQuery);	
 	
+	$count = $wpdb->get_var('SELECT FOUND_ROWS()');	
+		
 	echo "Processing " . intval($start) . " to " . (intval($start)+intval($nper)) . " of " . $count . " subscriptions.<hr />";
-	
+		
 	//if no more subs, pause until tomorrow
 	if(empty($sub_user_ids))
-	{
+	{		
+		echo "All done. Pausing until tomorrow.<br />";
+		
 		$tomorrow = strtotime(date("Y-m-d 00:00:00", $now+3600*24));
-		//update_option('pmpro_pfro_paused', $tomorrow);
-		//update_option('payflow_recurring_orders_cron_count', 0);
+		update_option('pmpro_pfro_paused', $tomorrow);
+		update_option('payflow_recurring_orders_cron_count', 0);
 		
 		return;
 	}
+	
+	$failed_payment_emails = array();
 	
 	//loop through subs
 	foreach($sub_user_ids as $user_id)
@@ -152,9 +160,12 @@ function pmpro_payflow_recurring_orders()
 			$payments = pmpropfro_processPaymentHistory($status);
 						
 			if(!empty($payments))
-			{
+			{				
 				foreach($payments as $payment)
 				{					
+					if($payment['P_TRANSTATE'] == 1)
+						$failed_payment_emails[] = $user->user_email;
+					
 					//success?
 					if($payment['P_TRANSTATE'] == 8)
 					{
@@ -173,17 +184,22 @@ function pmpro_payflow_recurring_orders()
 							
 							$morder->InitialPayment = $payment['P_AMT']; //not the initial payment, but the class is expecting that
 							$morder->PaymentAmount = $payment['P_AMT'];														
-														
+							
+							$morder->status = "success";
+							
 							//save
-							//$morder->saveOrder();
-							//$morder->getMemberOrderByID($morder->id);
-														
+							$morder->saveOrder();
+							$morder->getMemberOrderByID($morder->id);
+							
+							//this will affect the main query, so need to roll back the "end" 1 space
+							$end--;
+							
 							if(!empty($morder->id))
 							{
 								//update the timestamp							
 								$timestamp = date("Y-m-d H:i:s", strtotime($payment['P_TRANSTIME']));							
 								$wpdb->query("UPDATE $wpdb->pmpro_membership_orders SET timestamp = '" . $timestamp . "' WHERE id = '" . $morder->id . "' LIMIT 1");
-								echo "- Order added. #" . $morder->id . ".<br />";
+								echo "<strong>- Order added. #" . $morder->id . ".</strong><br />";
 								
 								//email the user their invoice				
 								$pmproemail = new PMProEmail();				
@@ -192,14 +208,16 @@ function pmpro_payflow_recurring_orders()
 								//echo "- Invoice email sent to " . $user->user_email . ".";
 							}
 							else
-								echo "- Error adding order.";														
-							
-							
+								echo "- Error adding order.";
 						}
-					}
+						else
+						{
+							echo "- Order already saved for #" . $payment['P_TRANSTATE'] . ".<br />";
+						}
+					}					
 					else
 					{
-						echo "- Payment " . $payment['P_PNREF'] . " has status #" . $payment['P_TRANSTATE'] . " so not saving.<br />";
+						echo "<strong>- Payment " . $payment['P_PNREF'] . " has status #" . $payment['P_TRANSTATE'] . " so not saving.</strong><br />";
 					}
 				}
 			}
@@ -207,9 +225,17 @@ function pmpro_payflow_recurring_orders()
 			{				
 				echo "- No payments found.<br />";
 			}
-		}
-
+		}				
 		echo "<hr />";
+		
+		echo "Going to start with #" . $end . " next time.";
+		update_option('payflow_recurring_orders_cron_count', $end);
+	}
+	
+	echo "<hr />";
+	foreach($failed_payment_emails as $email)
+	{
+		echo $email . "<br />";
 	}
 }
 
