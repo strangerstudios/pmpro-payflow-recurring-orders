@@ -174,8 +174,6 @@ function pmpro_payflow_recurring_orders()
 						
 			if(!empty($payments))
 			{				
-				d($payments);
-				
 				foreach($payments as $payment)
 				{					
 					if($payment['P_TRANSTATE'] == 1 || $payment['P_TRANSTATE'] == 11)
@@ -203,7 +201,7 @@ function pmpro_payflow_recurring_orders()
 							$morder->status = "error";
 							
 							//save
-							//$morder->saveOrder();
+							$morder->saveOrder();
 							$morder->getMemberOrderByID($morder->id);
 							
 							echo " Saving order.";
@@ -252,7 +250,7 @@ function pmpro_payflow_recurring_orders()
 							$morder->status = "success";
 							
 							//save
-							//$morder->saveOrder();
+							$morder->saveOrder();
 							$morder->getMemberOrderByID($morder->id);
 							
 							//this will affect the main query, so need to roll back the "end" 1 space
@@ -267,9 +265,9 @@ function pmpro_payflow_recurring_orders()
 								
 								//email the user their invoice				
 								$pmproemail = new PMProEmail();				
-								//$pmproemail->sendInvoiceEmail($user, $morder);						
+								$pmproemail->sendInvoiceEmail($user, $morder);						
 								
-								//echo "- Invoice email sent to " . $user->user_email . ".";
+								echo "- Invoice email sent to " . $user->user_email . ".";
 							}
 							else
 								echo "- Error adding order.";
