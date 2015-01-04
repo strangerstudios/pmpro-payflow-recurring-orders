@@ -21,9 +21,22 @@ Author URI: http://www.strangerstudios.com
 /*
 	Schedule Cron on Activation; Deschedule on Deactivation
 */
+//activation
+function pmpropfpro_activation()
+{	
+	wp_schedule_event(current_time(), 'hourly', 'pmpro_payflow_recurring_orders');
+}
+register_activation_hook(__FILE__, 'pmpropfpro_activation');
+
+//clear our crons on plugin deactivation
+function pmpropfpro_deactivation()
+{
+	wp_clear_scheduled_hook('pmpro_payflow_recurring_orders');
+}
+register_deactivation_hook(__FILE__, 'pmpropfpro_deactivation');
 
 //for testing
-function init_test_1()
+function pmpropfro_init_test()
 {
 	if(!empty($_REQUEST['test']) && current_user_can('manage_options'))
 	{
@@ -31,7 +44,7 @@ function init_test_1()
 		exit;
 	}
 }
-add_action('init', 'init_test_1');
+//add_action('init', 'pmpropfro_init_test');
 
 /*
 	Cron function.
@@ -48,7 +61,7 @@ function pmpro_payflow_recurring_orders()
 	
 	//between what hours should the cron run?
 	$cron_start = 1;	//1 AM
-	$cron_end = 24;		//6 AM
+	$cron_end = 6;		//6 AM
 	$current_hour = date('G', $now);
 	if($current_hour > $cron_end || $current_hour < $cron_start)
 		return;
@@ -161,13 +174,64 @@ function pmpro_payflow_recurring_orders()
 						
 			if(!empty($payments))
 			{				
+				d($payments);
+				
 				foreach($payments as $payment)
 				{					
-					if($payment['P_TRANSTATE'] == 1)
-						$failed_payment_emails[] = $user->user_email;
-					
-					//success?
-					if($payment['P_TRANSTATE'] == 8)
+					if($payment['P_TRANSTATE'] == 1 || $payment['P_TRANSTATE'] == 11)
+					{
+						echo "- Failed payment #" . $payment['P_PNREF'] . ".";
+						
+						//check if we have this one already
+						$old_order = new MemberOrder();
+						$old_order->getMemberOrderByPaymentTransactionID($payment['P_PNREF']);
+						
+						if(empty($old_order->id))
+						{
+							$failed_payment_emails[] = $user->user_email;
+						
+							//not there yet, add it
+							$morder = new MemberOrder();
+							$morder->user_id = $last_order->user_id;
+							$morder->membership_id = $last_order->membership_id;
+							$morder->payment_transaction_id = $payment['P_PNREF'];
+							$morder->subscription_transaction_id = $last_order->subscription_transaction_id;
+							
+							$morder->InitialPayment = $payment['P_AMT']; //not the initial payment, but the class is expecting that
+							$morder->PaymentAmount = $payment['P_AMT'];														
+							
+							$morder->status = "error";
+							
+							//save
+							//$morder->saveOrder();
+							$morder->getMemberOrderByID($morder->id);
+							
+							echo " Saving order.";
+							
+							//this will affect the main query, so need to roll back the "end" 1 space
+							$end--;
+						
+							//unless there is another non-failed payment more recent, cancel their membership
+							if(!pmpropfro_paymentAfter(strtotime($payment['P_TRANSTIME'])))
+							{
+								//cancel membership
+								pmpro_changeMembershipLevel(0, $user_id);
+								
+								echo " Membership cancelled. Member emailed.";
+								
+								//notify them								
+								$myemail = new PMProEmail();
+								$myemail->sendCancelEmail($user);
+							}
+							else
+								echo " More recent successful order. So not cancelling membership.";
+						}
+						else
+							echo " Already logged.";
+							
+						echo "<br />";
+					}
+					elseif($payment['P_TRANSTATE'] == 8)
 					{
 						//check if we have this one already
 						$old_order = new MemberOrder();
@@ -188,7 +252,7 @@ function pmpro_payflow_recurring_orders()
 							$morder->status = "success";
 							
 							//save
-							$morder->saveOrder();
+							//$morder->saveOrder();
 							$morder->getMemberOrderByID($morder->id);
 							
 							//this will affect the main query, so need to roll back the "end" 1 space
@@ -260,9 +324,9 @@ function pmpropfro_getSubscriptionPayments($order)
 	else  
 	{
 		$order->status = "error";
-		$order->errorcode = $this->httpParsedResponseAr['L_ERRORCODE0'];
-		$order->error = urldecode($this->httpParsedResponseAr['L_LONGMESSAGE0']);
-		$order->shorterror = urldecode($this->httpParsedResponseAr['L_SHORTMESSAGE0']);
+		$order->errorcode = $order->Gateway->httpParsedResponseAr['L_ERRORCODE0'];
+		$order->error = urldecode($order->Gateway->httpParsedResponseAr['L_LONGMESSAGE0']);
+		$order->shorterror = urldecode($order->Gateway->httpParsedResponseAr['L_SHORTMESSAGE0']);
 		
 		return false;				
 	}
@@ -293,4 +357,24 @@ function pmpropfro_processPaymentHistory($results)
 	}
 	
 	return $payments;
+}
+
+/*
+	Check if there is a successful payment after a certain datetime.
+	
+	- $payments = array of payment objects from Payflow.
+	- $time = UNIX TIMESTAMP
+*/
+function pmpropfro_paymentAfter($payments, $time)
+{
+	if(!empty($payments))
+	{
+		foreach($payments as $payment)
+		{
+			if($payment['P_TRANSTATE'] == 8 && strtotime($payment['P_TRANSTIME']) > $time)
+				return true;
+		}
+	}
+	
+	return false;
 }
