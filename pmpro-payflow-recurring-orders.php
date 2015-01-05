@@ -3,7 +3,7 @@
 Plugin Name: PMPro Payflow Recurring Orders
 Plugin URI: http://www.paidmembershipspro.com/wp/pmpro-payflow-recurring-orders/
 Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
-Version: .1
+Version: .1.1
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 */
@@ -210,7 +210,7 @@ function pmpro_payflow_recurring_orders()
 							$end--;
 						
 							//unless there is another non-failed payment more recent, cancel their membership
-							if(!pmpropfro_paymentAfter(strtotime($payment['P_TRANSTIME'])))
+							if(!pmpropfro_paymentAfter($payments, strtotime($payment['P_TRANSTIME'])))
 							{
 								//cancel membership
 								pmpro_changeMembershipLevel(0, $user_id);
