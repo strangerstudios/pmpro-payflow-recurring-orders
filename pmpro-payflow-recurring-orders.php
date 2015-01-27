@@ -3,7 +3,7 @@
 Plugin Name: PMPro Payflow Recurring Orders
 Plugin URI: http://www.paidmembershipspro.com/wp/pmpro-payflow-recurring-orders/
 Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
-Version: .1.1
+Version: .2
 Author: Stranger Studios
 Author URI: http://www.strangerstudios.com
 */
@@ -38,7 +38,7 @@ register_deactivation_hook(__FILE__, 'pmpropfpro_deactivation');
 //for testing
 function pmpropfro_init_test()
 {
-	if(!empty($_REQUEST['test']) && current_user_can('manage_options'))
+	if(!empty($_REQUEST['payflowtest']) && current_user_can('manage_options'))
 	{
 		pmpro_payflow_recurring_orders();	
 		exit;
@@ -63,7 +63,7 @@ function pmpro_payflow_recurring_orders()
 	$cron_start = 1;	//1 AM
 	$cron_end = 6;		//6 AM
 	$current_hour = date('G', $now);
-	if($current_hour > $cron_end || $current_hour < $cron_start)
+	if(!isset($_REQUEST['start']) && !isset($_REQUEST['force']) && ($current_hour > $cron_end || $current_hour < $cron_start))
 		return;
 	
 	//where did we leave off?	
@@ -288,11 +288,11 @@ function pmpro_payflow_recurring_orders()
 				echo "- No payments found.<br />";
 			}
 		}				
-		echo "<hr />";
-		
-		echo "Going to start with #" . $end . " next time.";
-		update_option('payflow_recurring_orders_cron_count', $end);
+		echo "<hr />";				
 	}
+	
+	echo "Going to start with #" . $end . " next time.";
+	update_option('payflow_recurring_orders_cron_count', $end);
 	
 	echo "<hr />";
 	foreach($failed_payment_emails as $email)
