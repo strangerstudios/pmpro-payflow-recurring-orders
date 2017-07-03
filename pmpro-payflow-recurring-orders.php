@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: PMPro Payflow Recurring Orders
+Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
 Plugin URI: http://www.paidmembershipspro.com/wp/pmpro-payflow-recurring-orders/
 Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
 Version: .2
@@ -44,7 +44,7 @@ function pmpropfro_init_test()
 		exit;
 	}
 }
-//add_action('init', 'pmpropfro_init_test');
+///add_action('init', 'pmpropfro_init_test');
 
 /*
 	Cron function.
@@ -78,10 +78,16 @@ function pmpro_payflow_recurring_orders()
 	//are we paused? value is timestamp. if set wait until then
 	$paused = get_option('pmpro_pfro_paused', false);
 	if(!empty($paused) && $paused > $now)
+	{
+		echo "Paused. Add &force=1 to URL to force start.<br />";
 		return;
+	}
 		
 	//how many subscriptions to run at one time. based on your server speed and timeout limits/etc.
-	$nper = 50;		
+	if(defined('PMPRO_CRON_LIMIT'))
+		$nper = PMPRO_CRON_LIMIT;
+	else
+		$nper = 50;		
 	
 	//next one
 	$end = (intval($start) + intval($nper));
@@ -274,7 +280,7 @@ function pmpro_payflow_recurring_orders()
 						}
 						else
 						{
-							echo "- Order already saved for #" . $payment['P_TRANSTATE'] . ".<br />";
+							echo "- Order already saved for #" . $payment['P_PNREF'] . ".<br />";
 						}
 					}					
 					else
@@ -340,9 +346,17 @@ function pmpropfro_processPaymentHistory($results)
 	//is there at least one?
 	if(!empty($results['P_PNREF1']))
 	{
-		$npayments = ceil((count($results) - 3)/6);
-		for($i = 1; $i <= $npayments; $i++)
-		{
+		$maxpossiblepayments = count($results) / 3;
+		for($i = 1; $i <= $maxpossiblepayments; $i++)
+		{			
+			//if no pnref, we're finished
+			if(empty($results['P_PNREF' . $i]))
+				break;
+			
+			//if no transtate, this is not a "real" payment, skip it
+			if(empty($results['P_TRANSTATE' . $i]))
+				continue;
+			
 			$payments[] = array(
 				"P_PNREF" => $results['P_PNREF'.$i],
 				"P_TRANSTIME" => $results['P_TRANSTIME'.$i],
@@ -376,3 +390,19 @@ function pmpropfro_paymentAfter($payments, $time)
 	
 	return false;
 }
+
+/*
+Function to add links to the plugin row meta
+*/
+function pmpropfro_plugin_row_meta($links, $file) {
+	if(strpos($file, 'pmpro-payflow-recurring-orders.php') !== false)
+	{
+		$new_links = array(
+			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plugins-on-github/payflow-recurring-orders-addon/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+		);
+		$links = array_merge($links, $new_links);
+	}
+	return $links;
+}
+add_filter('plugin_row_meta', 'pmpropfro_plugin_row_meta', 10, 2);
