@@ -24,7 +24,7 @@ Author URI: http://www.strangerstudios.com
 //activation
 function pmpropfpro_activation()
 {	
-	wp_schedule_event(current_time(), 'hourly', 'pmpro_payflow_recurring_orders');
+	wp_schedule_event( current_time( 'timestamp' ), 'hourly', 'pmpro_payflow_recurring_orders' );
 }
 register_activation_hook(__FILE__, 'pmpropfpro_activation');
 
