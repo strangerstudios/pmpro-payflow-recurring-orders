@@ -30,6 +30,7 @@ View full documentation at: https://www.paidmembershipspro.com/add-ons/payflow-r
 = .2 =
 * BUG FIX: Fixed setting of $end value.
 * BUG/ENHANCEMENT: Added force parameter.
+* FEATURE: Added check for PMPRO_CRON_LIMIT to override the 50 per run limit.
 
 = .1.1 =
 * BUG FIX: Fixed use of pmpropfro_paymentAfter to pass payments along.
