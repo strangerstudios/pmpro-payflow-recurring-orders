@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
-Plugin URI: http://www.paidmembershipspro.com/wp/pmpro-payflow-recurring-orders/
+Plugin URI: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
 Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
 Version: .2
-Author: Stranger Studios
-Author URI: http://www.strangerstudios.com
+Author: Paid Memberships Pro
+Author URI: htts://www.paidmembershipspro.com
 */
 /*
 	The Plan
@@ -398,8 +398,8 @@ function pmpropfro_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-payflow-recurring-orders.php') !== false)
 	{
 		$new_links = array(
-			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plugins-on-github/payflow-recurring-orders-addon/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
-			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/')  . '" title="' . esc_attr( __( 'View Documentation', 'paid-memberships-pro' ) ) . '">' . __( 'Docs', 'paid-memberships-pro' ) . '</a>',
+			'<a href="' . esc_url('https://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'paid-memberships-pro' ) ) . '">' . __( 'Support', 'paid-memberships-pro' ) . '</a>',
 		);
 		$links = array_merge($links, $new_links);
 	}
