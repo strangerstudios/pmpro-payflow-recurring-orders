@@ -3,7 +3,7 @@
 Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
 Plugin URI: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
 Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
-Version: .2
+Version: .3
 Author: Paid Memberships Pro
 Author URI: htts://www.paidmembershipspro.com
 */
@@ -55,11 +55,9 @@ function pmpro_payflow_recurring_orders() {
 	global $wpdb;
 	$now = current_time( 'timestamp' );
 
-	// between what hours should the cron run?
-	$cron_start   = 1;    // 1 AM
-	$cron_end     = 6;      // 6 AM
-	$current_hour = date( 'G', $now );
-	if ( ! isset( $_REQUEST['start'] ) && ! isset( $_REQUEST['force'] ) && ( $current_hour > $cron_end || $current_hour < $cron_start ) ) {
+	// Use this filter to avoid running the cron at certain hours.
+	$skip_cron = apply_filters( 'pmpro_payflow_recurring_orders_skip_cron', false );
+	if ( $skip_cron ) {
 		return;
 	}
 

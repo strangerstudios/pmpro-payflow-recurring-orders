@@ -1,9 +1,9 @@
 === Paid Memberships Pro - Payflow Recurring Orders ===
 Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, paypal, payflow
-Requires at least: 3.5
-Tested up to: 5.0.3
-Stable tag: .2
+Requires at least: 4
+Tested up to: 5.5
+Stable tag: .3
 
 Synchronize Payflow recurring subscriptions with Paid Memberships Pro.
 
@@ -26,6 +26,8 @@ We have developed this Add On to synchronize Payflow recurring orders and cancel
 View full documentation at: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
 
 == Changelog ==
+= .3 =
+* BUG FIX/ENHANCEMENT: Removed the code to only run the cron between 1AM and 6AM. Instead, it will run every hour and you can use the new pmpro_payflow_recurring_orders_skip_cron filter to return true during those times if you'd like to skip the cron during heavy times.
 
 = .2 =
 * BUG FIX: Fixed setting of $end value.
