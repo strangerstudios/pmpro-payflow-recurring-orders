@@ -357,6 +357,15 @@ function pmpropfro_paymentAfter( $payments, $time ) {
 	return false;
 }
 
+/**
+ * Mark the plugin as MMPU-incompatible.
+ */
+function pmpropfro_mmpu_incompatible_add_ons( $incompatible ) {
+	$incompatible[] = 'PMPro Payflow Recurring Orders Add On';
+	return $incompatible;
+}
+add_filter( 'pmpro_mmpu_incompatible_add_ons', 'pmpropfro_mmpu_incompatible_add_ons' );
+
 /*
 	Function to add links to the plugin row meta
 */
