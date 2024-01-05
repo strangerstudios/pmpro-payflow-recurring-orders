@@ -1,12 +1,23 @@
 <?php
 /*
-Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
-Plugin URI: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
-Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
-Version: .3
-Author: Paid Memberships Pro
-Author URI: htts://www.paidmembershipspro.com
+ * Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
+ * Plugin URI: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
+ * Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
+ * Version: .3
+ * Author: Paid Memberships Pro
+ * Author URI: htts://www.paidmembershipspro.com
+ * Text Domain: paid-memberships-pro
+ * Domain Path: /languages
 */
+
+/**
+ * Load the languages folder for translations.
+ */
+function pmpropfpro_load_plugin_text_domain() {
+	load_plugin_textdomain( 'pmpro-payflow-recurring-orders', false, basename( dirname( __FILE__ ) ) . '/languages' );
+}
+add_action( 'plugins_loaded', 'pmpropfpro_load_plugin_text_domain' );
+
 /*
 	The Plan
 	* Find users to check:
@@ -372,8 +383,8 @@ add_filter( 'pmpro_mmpu_incompatible_add_ons', 'pmpropfro_mmpu_incompatible_add_
 function pmpropfro_plugin_row_meta( $links, $file ) {
 	if ( strpos( $file, 'pmpro-payflow-recurring-orders.php' ) !== false ) {
 		$new_links = array(
-			'<a href="' . esc_url( 'https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/' ) . '" title="' . esc_attr( __( 'View Documentation', 'paid-memberships-pro' ) ) . '">' . __( 'Docs', 'paid-memberships-pro' ) . '</a>',
-			'<a href="' . esc_url( 'https://paidmembershipspro.com/support/' ) . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'paid-memberships-pro' ) ) . '">' . __( 'Support', 'paid-memberships-pro' ) . '</a>',
+			'<a href="' . esc_url( 'https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/' ) . '" title="' . esc_attr( __( 'View Documentation', 'pmpro-payflow-recurring-orders' ) ) . '">' . __( 'Docs', 'pmpro-payflow-recurring-orders' ) . '</a>',
+			'<a href="' . esc_url( 'https://paidmembershipspro.com/support/' ) . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro-payflow-recurring-orders' ) ) . '">' . __( 'Support', 'pmpro-payflow-recurring-orders' ) . '</a>',
 		);
 		$links     = array_merge( $links, $new_links );
 	}
