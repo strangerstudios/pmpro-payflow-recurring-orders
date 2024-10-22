@@ -243,12 +243,15 @@ function pmpro_payflow_recurring_orders() {
 
 							$morder->InitialPayment = $payment['P_AMT']; // not the initial payment, but the class is expecting that
 							$morder->PaymentAmount  = $payment['P_AMT'];
+							$morder->total          = $payment['P_AMT'];
 
 							$morder->status = 'success';
 
 							// save
 							$morder->saveOrder();
 							$morder->getMemberOrderByID( $morder->id );
+
+							do_action( "pmpro_subscription_payment_completed", $morder );
 
 							// this will affect the main query, so need to roll back the "end" 1 space
 							$end--;
