@@ -3,7 +3,7 @@
  * Plugin Name: Paid Memberships Pro - Payflow Recurring Orders Add On
  * Plugin URI: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
  * Description: Check daily for new recurring orders in Payflow and add as PMPro orders.
- * Version: 0.3.1
+ * Version: 0.3.2
  * Author: Paid Memberships Pro
  * Author URI: htts://www.paidmembershipspro.com
  * Text Domain: paid-memberships-pro

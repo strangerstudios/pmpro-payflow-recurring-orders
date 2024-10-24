@@ -3,7 +3,7 @@ Contributors: strangerstudios
 Tags: paid memberships pro, pmpro, paypal, payflow
 Requires at least: 4
 Tested up to: 6.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 
 Synchronize Payflow recurring subscriptions with Paid Memberships Pro.
 
@@ -26,6 +26,10 @@ We have developed this Add On to synchronize Payflow recurring orders and cancel
 View full documentation at: https://www.paidmembershipspro.com/add-ons/payflow-recurring-orders-addon/
 
 == Changelog ==
+= 0.3.2 - 2024-10-24 =
+* BUG FIX: Fixed an issue where subscriptions table data would not be updated when using PMPro v3.0+. #7 (@dparker1005)
+* BUG FIX: Fixed an issue where the order amount for recurring orders would show as $0 in PMPro v3.2+. #7 (@dparker1005)
+
 = 0.3.1 - 2024-01-05 =
 * BUG FIX/ENHANCEMENT: Marking plugin as incompatible with Multiple Memberships Per User for the PMPro v3.0 update. #6 (@dparker1005)
 
